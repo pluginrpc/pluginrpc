@@ -26,7 +26,7 @@ PluginRPC has the following goals:
 
 PluginRPC currently has one official language library:
 
-- [pluginrpc-go](https://github.com/pluginrpc/pluginrpc-go).
+- [pluginrpc-go](https://github.com/pluginrpc/pluginrpc-go)
 
 Go is a natural language to write plugins in, and we have a direct use case for an RPC library in Go
 for our custom lint and breaking change plugins in [buf](https://github.com/bufbuild/buf). However,
