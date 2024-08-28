@@ -28,10 +28,10 @@ PluginRPC currently has one official language library:
 
 - [pluginrpc-go](https://github.com/pluginrpc/pluginrpc-go).
 
-Golang is a natural language to write plugins in, and we have a direct use case for an RPC library
-in Golang for our custom lint and breaking change plugins in [buf](https://github.com/bufbuild/buf).
-However, PluginRPC is purposefully designed to be simple to implement in any language. If there is
-sufficient demand, we may provide official implementations for other languages in the future.
+Go is a natural language to write plugins in, and we have a direct use case for an RPC library in Go
+for our custom lint and breaking change plugins in [buf](https://github.com/bufbuild/buf). However,
+PluginRPC is purposefully designed to be simple to implement in any language. If there is sufficient
+demand, we may provide official implementations for other languages in the future.
 
 If using Protobuf to write plugins, there's traditionally been two mechanisms:
 
