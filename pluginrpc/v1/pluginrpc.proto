@@ -1,0 +1,157 @@
+// Copyright 2024 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+// Interfaces for the pluginrpc system.
+//
+// These interfaces define how requests and responses and sent over stdin and stdout, as well
+// as define how procedures are specified.
+//
+// These interfaces will work if a given plugin responds to `--protocol` with `1`.
+package pluginrpc.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "buf.build/gen/go/pluginrpc/pluginrpc/protocolbuffers/go/pluginrpc/v1";
+
+// A specification of a single procedure that can be invoked within a plugin.
+//
+// A prodecure has a path, and the args used to invoke it via the plugin.
+message Procedure {
+  // The path of the procedure.
+  //
+  // When mapped to a Protobuf method, this will be `/fully.qualified.package.Service/Method`.
+  //
+  // Example:
+  //
+  //   package buf.plugin.check.v1;
+  //
+  //   service LintService {
+  //     rpc Lint(LintRequest) returns (LintResponse);
+  //   }
+  //
+  // The path would be `/buf.plugin.check.v1.LintService/Lint`.
+  //
+  // The path must be a valid URI.
+  string path = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.uri = true
+  ];
+  // The args to invoke on the plugin to invoke this method per the protocol specification.
+  //
+  // Example: If the args are `["plugin, "lint"]`, this method would be invoked by calling
+  // the binary with the args `plugin lint`.
+  //
+  // This is optional. If not set, the default is that the procedure can be called
+  // by calling the path as the only argument.
+  //
+  // Args must be at least of length 2, may only consist of characters in [a-zA-Z0-9_-], and may not
+  // start or end with a dash or underscore.
+  repeated string args = 2 [(buf.validate.field).repeated.items.string.pattern = "^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$"];
+}
+
+// The response given when the `--spec` flag is passed to the plugin.
+message Spec {
+  // The specifications of the Procedures implemented.
+  //
+  // All Procedures must have a unique path and args. The latter is unenforceable
+  // via protovalidate, but users should assume that pluginrpc implementations
+  // will enforce that args are unique.
+  repeated Procedure procedures = 1 [
+    (buf.validate.field).repeated.min_items = 1,
+    (buf.validate.field).cel = {
+      id: "path_unique"
+      message: "procedure paths must be unique"
+      expression: "this.map(procedure, procedure.path).unique()"
+    }
+  ];
+}
+
+// A request sent over a transport.
+message Request {
+  // The request value.
+  //
+  // May not be present.
+  google.protobuf.Any value = 1;
+}
+
+// A response received over a transport.
+message Response {
+  // The response value.
+  //
+  // May or may not be present, regardless of if there is an Error.
+  google.protobuf.Any value = 1;
+  // An error.
+  //
+  // May or may not be present, regardless of if there is a response value.
+  Error error = 2;
+}
+
+// An error received over a transport as part of a Response.
+message Error {
+  // The error code.
+  Code code = 1 [(buf.validate.field).enum.not_in = 0];
+  // The message of the error.
+  string message = 2 [(buf.validate.field).required = true];
+}
+
+// A code for an error.
+//
+// Matches with google.rpc.Code.
+enum Code {
+  // The zero value.
+  CODE_UNSPECIFIED = 0;
+  // Indicates that the operation was canceled, typically by the
+  CODE_CANCELED = 1;
+  // Indicates that the operation failed for an unknown reason.
+  CODE_UNKNOWN = 2;
+  // Indicates that client supplied an invalid argument.
+  CODE_INVALID_ARGUMENT = 3;
+  // Indicates that deadline expired before the operation could complete.
+  CODE_DEADLINE_EXCEEDED = 4;
+  // Indicates that some requested entity (for example, a file or directory)
+  // was not found.
+  CODE_NOT_FOUND = 5;
+  // Indicates that client attempted to create an entity (for example, a file
+  // or directory) that already exists.
+  CODE_ALREADY_EXISTS = 6;
+  // Indicates that the caller doesn't have permission to execute the
+  // specified operation.
+  CODE_PERMISSION_DENIED = 7;
+  // Indicates that some resource has been exhausted. For example, a per-user
+  // quota may be exhausted or the entire file system may be full.
+  CODE_RESOURCE_EXHAUSTED = 8;
+  // Indicates that the system is not in a state required for the operation's execution.
+  CODE_FAILED_PRECONDITION = 9;
+  // Indicates that operation was aborted by the system, usually because of a
+  // concurrency issue such as a sequencer check failure or transaction abort.
+  CODE_ABORTED = 10;
+  // Indicates that the operation was attempted past the valid range (for example,
+  // seeking past end-of-file).
+  CODE_OUT_OF_RANGE = 11;
+  // Indicates that the operation isn't implemented, supported, or enabled in this service.
+  CODE_UNIMPLEMENTED = 12;
+  // Indicates that some invariants expected by the underlying system have been broken.
+  // This code is reserved for serious errors.
+  CODE_INTERNAL = 13;
+  // Indicates that the service is currently unavailable. This is usually temporary, so
+  // clients can back off and retry idempotent operations.
+  CODE_UNAVAILABLE = 14;
+  // Indicates that the operation has resulted in unrecoverable data loss or corruption.
+  CODE_DATA_LOSS = 15;
+  // Indicates that the request does not have valid authentication credentials for the operation.
+  CODE_UNAUTHENTICATED = 16;
+}
