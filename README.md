@@ -155,10 +155,9 @@ undefined and will not be processed.
 
 A plugin may always write to stderr as it wishes.
 
-## Status: Alpha
+## Status: Beta
 
-This framework is in active development, and should not be considered stable. We're publishing it
-publicly to get early feedback as we approach stability.
+This framework is in active development, and should not be considered stable.
 
 ## Legal
 
