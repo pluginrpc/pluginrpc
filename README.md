@@ -39,7 +39,7 @@ If using Protobuf to write plugins, there's traditionally been two mechanisms:
    over stdout. This is how
    [`protoc`](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto)
    operates, for example, taking in a `CodeGeneratorRequest` and sending back a
-   `CodeGeneratorRequest` over stdout. This is very simple, however it makes doing anything else
+   `CodeGeneratorResponse` over stdout. This is very simple, however it makes doing anything else
    extremely difficult. All plugin API evolution needs to remain within these single messages for
    all time, and providing functionality for multiple methods is awkward at best (for example, via
    use of `oneofs`). Multiple content types cannot be supported.
