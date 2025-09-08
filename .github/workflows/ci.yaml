@@ -10,7 +10,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: install
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.23.x
           cache-dependency-path: Makefile
